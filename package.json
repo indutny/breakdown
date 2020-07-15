@@ -1,7 +1,7 @@
 {
   "name": "@indutny/breakdown",
   "version": "1.0.0",
-  "description": "Monitoring of outgoing http requests for an http server",
+  "description": "Monitor outgoing http requests for an http server",
   "main": "lib/breakdown.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
