@@ -1,5 +1,5 @@
 # breakdown
-[![Build Status](https://secure.travis-ci.org/nodejs/@indutny/breakdown.svg)](http://travis-ci.org/nodejs/@indutny/breakdown)
+[![Build Status](https://secure.travis-ci.org/@indutny/breakdown.svg)](http://travis-ci.org/@indutny/breakdown)
 [![NPM version](https://badge.fury.io/js/@indutny/breakdown.svg)](https://badge.fury.io/js/@indutny/breakdown)
 
 ## Description
