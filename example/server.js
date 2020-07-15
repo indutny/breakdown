@@ -2,7 +2,7 @@
 
 const http = require('http');
 
-const Breakdown = require('./');
+const Breakdown = require('../');
 
 const b = new Breakdown();
 
