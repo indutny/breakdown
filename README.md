@@ -31,14 +31,14 @@ http.createServer((req, res) => {
 
 Events are logged into a newline separated JSON objects:
 ```json
-{"event":"start","id":1,"type":"HTTP_SERVER_REQUEST","path":[],"timestamp":1594860179495,"meta":{"method":"GET","headers":{"host":"127.0.0.1:8000","user-agent":"curl/7.54.0","accept":"*/*"},"url":"/"}}
-{"event":"start","id":6,"type":"DNS_LOOKUP","path":[4,1],"timestamp":1594860179504,"meta":{"family":"any","hostname":"example.com"}}
-{"event":"start","id":9,"type":"HTTP_CLIENT_REQUEST","path":[7,1],"timestamp":1594860179505,"meta":{"method":"GET","path":"/","headers":{"host":"example.com"}}}
-{"event":"end","id":6,"type":"DNS_LOOKUP","spin":0.000486735,"selfSpin":0.000486735,"timestamp":1594860179514,"duration":10}
-{"event":"start","id":22,"type":"HTTP_CLIENT_REQUEST","path":[21,20,4,1],"timestamp":1594860179535,"meta":{"method":"GET","path":"/","headers":{"host":"example.com"}}}
-{"event":"end","id":9,"type":"HTTP_CLIENT_REQUEST","spin":0.001136993,"selfSpin":0.00046993200000000005,"timestamp":1594860179535,"duration":30}
-{"event":"end","id":22,"type":"HTTP_CLIENT_REQUEST","spin":0.008475709000000001,"selfSpin":0.006659208,"timestamp":1594860179555,"duration":20}
-{"event":"end","id":1,"type":"HTTP_SERVER_REQUEST","spin":0.031560152,"selfSpin":0.010891764,"timestamp":1594860179555,"duration":60}
+{"event":"start","id":1,"type":"HTTP_SERVER_REQUEST","path":[],"timestamp":1594860311.81,"meta":{"method":"GET","headers":{"host":"127.0.0.1:8000","user-agent":"curl/7.54.0","accept":"*/*"},"url":"/"}}
+{"event":"start","id":6,"type":"DNS_LOOKUP","path":[4,1],"timestamp":1594860311.822,"meta":{"family":"any","hostname":"example.com"}}
+{"event":"start","id":9,"type":"HTTP_CLIENT_REQUEST","path":[7,1],"timestamp":1594860311.824,"meta":{"method":"GET","path":"/","headers":{"host":"example.com"}}}
+{"event":"end","id":6,"type":"DNS_LOOKUP","spin":0.000507157,"selfSpin":0.000507157,"timestamp":1594860311.848,"duration":0.026}
+{"event":"start","id":22,"type":"HTTP_CLIENT_REQUEST","path":[21,20,4,1],"timestamp":1594860311.869,"meta":{"method":"GET","path":"/","headers":{"host":"example.com"}}}
+{"event":"end","id":9,"type":"HTTP_CLIENT_REQUEST","spin":0.0018778460000000003,"selfSpin":0.000810223,"timestamp":1594860311.869,"duration":0.045}
+{"event":"end","id":22,"type":"HTTP_CLIENT_REQUEST","spin":0.019360079,"selfSpin":0.010411778,"timestamp":1594860311.9,"duration":0.031}
+{"event":"end","id":1,"type":"HTTP_SERVER_REQUEST","spin":0.05297683800000001,"selfSpin":0.015354112000000001,"timestamp":1594860311.9,"duration":0.09}
 ```
 
 Field description:
