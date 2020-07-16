@@ -49,7 +49,7 @@ Field description:
 * `path` - inverse list of parent event ids. Note that some event ids in this
   list are internal and do not correspond to reported events (This may change
   in the future)
-* `timestamp` - time of the event in seconds (unix time)
+* `timestamp` - time of the event in milliseconds (unix time)
 * `meta` - various fields pertaining to particular type of event
 * `duration` - difference between `end.timestamp` and `start.timestamp`
 * `spin` - total CPU time in seconds spent during this event and its children
