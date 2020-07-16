@@ -41,6 +41,14 @@ Events are logged into a newline separated JSON objects:
 {"event":"end","id":7,"type":"HTTP_SERVER_REQUEST","spin":29.239529999999995,"selfSpin":12.927838,"timestamp":44001197.857574,"duration":76.283168}
 ```
 
+## Supported Asynchronous Evenst
+
+So far the only supported events are:
+
+* HTTP Server requests
+* HTTP Client requests
+* DNS lookups
+
 #### LICENSE
 
 This software is licensed under the MIT License.
