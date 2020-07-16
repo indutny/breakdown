@@ -22,8 +22,11 @@ const b = new Breakdown();
 
 b.start('/path/to/log');
 
+const middleware = b.middleware();
+
 http.createServer((req, res) => {
-  b.track(req, res);
+  // NOTE: Necessary only for Node < v12
+  middleware(req, res);
 
   // ....
 }).listen(8000);
