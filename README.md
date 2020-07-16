@@ -31,14 +31,14 @@ http.createServer((req, res) => {
 
 Events are logged into a newline separated JSON objects:
 ```json
-{"event":"start","id":7,"type":"HTTP_SERVER_REQUEST","path":[],"timestamp":44001121.574406,"meta":{"method":"GET","headers":{"host":"127.0.0.1:8000","user-agent":"curl/7.54.0","accept":"*/*"},"url":"/"}}
-{"event":"start","id":13,"type":"DNS_LOOKUP","path":[11,7],"timestamp":44001132.18957,"meta":{"family":"any","hostname":"example.com"}}
-{"event":"start","id":16,"type":"HTTP_CLIENT_REQUEST","path":[7],"timestamp":44001133.957034,"meta":{"method":"GET","path":"/","headers":{"host":"example.com"}}}
-{"event":"end","id":13,"type":"DNS_LOOKUP","spin":0.465782,"selfSpin":0.465782,"timestamp":44001143.588424005,"duration":11.398854}
-{"event":"start","id":30,"type":"HTTP_CLIENT_REQUEST","path":[11,7],"timestamp":44001168.393151,"meta":{"method":"GET","path":"/","headers":{"host":"example.com"}}}
-{"event":"end","id":16,"type":"HTTP_CLIENT_REQUEST","spin":1.067104,"selfSpin":0.826454,"timestamp":44001168.914907,"duration":34.957873}
-{"event":"end","id":30,"type":"HTTP_CLIENT_REQUEST","spin":14.873516999999998,"selfSpin":12.892622,"timestamp":44001197.395594,"duration":29.002443}
-{"event":"end","id":7,"type":"HTTP_SERVER_REQUEST","spin":29.239529999999995,"selfSpin":12.927838,"timestamp":44001197.857574,"duration":76.283168}
+{"event":"start","id":1,"type":"HTTP_SERVER_REQUEST","path":[],"timestamp":44901732.581637,"meta":{"method":"GET","headers":{"host":"127.0.0.1:8000","user-agent":"curl/7.54.0","accept":"*/*"},"url":"/"}}
+{"event":"start","id":6,"type":"DNS_LOOKUP","path":[4,1],"timestamp":44901742.19296,"meta":{"family":"any","hostname":"example.com"}}
+{"event":"start","id":9,"type":"HTTP_CLIENT_REQUEST","path":[7,1],"timestamp":44901743.991903,"meta":{"method":"GET","path":"/","headers":{"host":"example.com"}}}
+{"event":"end","id":6,"type":"DNS_LOOKUP","spin":0.531538,"selfSpin":0.531538,"timestamp":44901754.695676,"duration":12.502716}
+{"event":"start","id":22,"type":"HTTP_CLIENT_REQUEST","path":[21,20,4,1],"timestamp":44901775.755844,"meta":{"method":"GET","path":"/","headers":{"host":"example.com"}}}
+{"event":"end","id":9,"type":"HTTP_CLIENT_REQUEST","spin":1.1373039999999999,"selfSpin":0.47621199999999997,"timestamp":44901776.04576,"duration":32.053857}
+{"event":"end","id":22,"type":"HTTP_CLIENT_REQUEST","spin":11.335297,"selfSpin":9.236605999999998,"timestamp":44901800.391305,"duration":24.635461}
+{"event":"end","id":1,"type":"HTTP_SERVER_REQUEST","spin":38.057866,"selfSpin":11.774072,"timestamp":44901800.681777,"duration":68.10014}
 ```
 
 ## Supported Asynchronous Evenst
