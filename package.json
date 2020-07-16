@@ -1,6 +1,6 @@
 {
   "name": "@indutny/breakdown",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Trace outgoing http requests for an http server",
   "main": "lib/breakdown.js",
   "files": [
@@ -9,7 +9,12 @@
   "scripts": {
     "test": "mocha --reporter=spec test/*-test.js"
   },
-  "keywords": [ "async_hooks", "breakdown", "trace", "server" ],
+  "keywords": [
+    "async_hooks",
+    "breakdown",
+    "trace",
+    "server"
+  ],
   "author": "Fedor Indutny <fedor@indutny.com>",
   "license": "MIT",
   "devDependencies": {
