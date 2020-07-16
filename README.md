@@ -2,9 +2,15 @@
 [![Build Status](https://secure.travis-ci.org/@indutny/breakdown.svg)](http://travis-ci.org/@indutny/breakdown)
 [![NPM version](https://badge.fury.io/js/@indutny/breakdown.svg)](https://badge.fury.io/js/@indutny/breakdown)
 
-## Description
+Trace outgoing http requests for an http server and track the time spent
+doing CPU intensive workload during each request.
 
-WIP
+## Why?
+
+When optimizing app's performance requests to a remote server can turn out to be
+the bottleneck. `breakdown` helps identify such scenarios and provides insights
+into the latency and CPU usage for such requests as well as for the server
+endpoints themselves.
 
 ## Usage
 
@@ -19,6 +25,20 @@ b.start('/path/to/log');
 http.createServer((req, res) => {
   // ....
 }).listen(8000);
+```
+
+## Output Format
+
+Events are logged into a newline separated JSON objects:
+```json
+{"event":"start","id":7,"type":"HTTP_SERVER_REQUEST","path":[],"timestamp":44001121.574406,"meta":{"method":"GET","headers":{"host":"127.0.0.1:8000","user-agent":"curl/7.54.0","accept":"*/*"},"url":"/"}}
+{"event":"start","id":13,"type":"DNS_LOOKUP","path":[11,7],"timestamp":44001132.18957,"meta":{"family":"any","hostname":"example.com"}}
+{"event":"start","id":16,"type":"HTTP_CLIENT_REQUEST","path":[7],"timestamp":44001133.957034,"meta":{"method":"GET","path":"/","headers":{"host":"example.com"}}}
+{"event":"end","id":13,"type":"DNS_LOOKUP","spin":0.465782,"selfSpin":0.465782,"timestamp":44001143.588424005,"duration":11.398854}
+{"event":"start","id":30,"type":"HTTP_CLIENT_REQUEST","path":[11,7],"timestamp":44001168.393151,"meta":{"method":"GET","path":"/","headers":{"host":"example.com"}}}
+{"event":"end","id":16,"type":"HTTP_CLIENT_REQUEST","spin":1.067104,"selfSpin":0.826454,"timestamp":44001168.914907,"duration":34.957873}
+{"event":"end","id":30,"type":"HTTP_CLIENT_REQUEST","spin":14.873516999999998,"selfSpin":12.892622,"timestamp":44001197.395594,"duration":29.002443}
+{"event":"end","id":7,"type":"HTTP_SERVER_REQUEST","spin":29.239529999999995,"selfSpin":12.927838,"timestamp":44001197.857574,"duration":76.283168}
 ```
 
 #### LICENSE
