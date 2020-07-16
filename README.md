@@ -3,14 +3,14 @@
 [![npm version](https://badge.fury.io/js/%40indutny%2Fbreakdown.svg)](https://badge.fury.io/js/%40indutny%2Fbreakdown)
 
 Trace outgoing http requests for an http server and track the time spent
-doing CPU intensive workload during each request.
+doing CPU intensive workload during each such request and more.
 
 ## Why?
 
-When optimizing app's performance requests to a remote server can turn out to be
-the bottleneck. `breakdown` helps identify such scenarios and provides insights
-into the latency and CPU usage for such requests as well as for the server
-endpoints themselves.
+When optimizing app's performance, requests to a remote server can turn out to
+be the bottleneck. `breakdown` helps identify such scenarios and provides
+insights into the latency and CPU usage for such requests as well as for the
+server endpoints themselves.
 
 ## Usage
 
