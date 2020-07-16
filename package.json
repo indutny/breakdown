@@ -1,6 +1,6 @@
 {
   "name": "@indutny/breakdown",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Trace outgoing http requests for an http server",
   "main": "lib/breakdown.js",
   "scripts": {
