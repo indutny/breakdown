@@ -38,17 +38,14 @@ http.createServer((req, res) => {
 
 Events are logged into a newline separated JSON objects:
 ```json
-{"type":"start","id":1,"ts":1594913705.976,"payload":{"type":"HTTP_SERVER_REQUEST","path":[],"meta":{"method":"GET","headers":{"host":"127.0.0.1:8000","user-agent":"curl/7.54.0","accept":"*/*"},"url":"/a"}}}
-{"type":"start","id":6,"ts":1594913705.987,"payload":{"type":"DNS_LOOKUP","path":[4,1],"meta":{"family":"any","hostname":"example.com"}}}
-{"type":"start","id":9,"ts":1594913705.989,"payload":{"type":"HTTP_CLIENT_REQUEST","path":[7,1],"meta":{"method":"GET","path":"/","headers":{"host":"example.com"}}}}
-{"type":"log","id":6,"ts":1594913706,"payload":{"error":false,"address":"93.184.216.34"}}
-{"type":"end","id":6,"ts":1594913706.001,"payload":{"spin":0.000756984,"selfSpin":0.000756984}}
-{"type":"log","id":9,"ts":1594913706.01,"payload":{"remoteAddress":"93.184.216.34"}}
-{"type":"start","id":25,"ts":1594913706.025,"payload":{"type":"HTTP_CLIENT_REQUEST","path":[24,23,4,1],"meta":{"method":"GET","path":"/","headers":{"host":"example.com"}}}}
-{"type":"log","id":25,"ts":1594913706.025,"payload":{"remoteAddress":"93.184.216.34"}}
-{"type":"end","id":9,"ts":1594913706.025,"payload":{"spin":0.001413863,"selfSpin":0.000597313}}
-{"type":"end","id":25,"ts":1594913706.052,"payload":{"spin":0.013044241000000002,"selfSpin":0.010261513}}
-{"type":"end","id":1,"ts":1594913706.053,"payload":{"spin":0.044147079,"selfSpin":0.013174767}}
+{"type":"start","id":1,"ts":1594931478.984,"payload":{"parentId":null,"type":"HTTP_SERVER_REQUEST","meta":{"method":"GET","headers":{"host":"127.0.0.1:8000","user-agent":"curl/7.54.0","accept":"*/*"},"url":"/a"}}}
+{"type":"start","id":2,"ts":1594931478.992,"payload":{"parentId":1,"type":"DNS_LOOKUP","meta":{"family":"any","hostname":"example.com"}}}
+{"type":"start","id":3,"ts":1594931478.994,"payload":{"parentId":1,"type":"HTTP_CLIENT_REQUEST","meta":{"method":"GET","path":"/","headers":{"host":"example.com"}}}}
+{"type":"log","id":2,"ts":1594931479.003,"payload":{"error":false,"address":"93.184.216.34"}}
+{"type":"end","id":2,"ts":1594931479.003,"payload":{"spin":0.0005950850000000001,"selfSpin":0.0005950850000000001}}
+{"type":"log","id":3,"ts":1594931479.011,"payload":{"remoteAddress":"93.184.216.34","remotePort":80}}
+{"type":"end","id":3,"ts":1594931479.032,"payload":{"spin":0.006975610000000001,"selfSpin":0.006975610000000001}}
+{"type":"end","id":1,"ts":1594931479.032,"payload":{"spin":0.018026091,"selfSpin":0.010455395999999999}}
 ```
 
 Field description:
@@ -60,9 +57,7 @@ Field description:
 
 `start` payload:
 * `type` - type of the event
-* `path` - inverse list of parent event ids. Note that some event ids in this
-  list are internal and do not correspond to reported events (This may change
-  in the future)
+* `parentId` - event id of the parent or `null`
 * `meta` - various fields pertaining to particular type of event.
 
 `log` payload:
