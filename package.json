@@ -3,10 +3,16 @@
   "version": "1.1.0",
   "description": "Trace outgoing http requests for an http server",
   "main": "lib/breakdown.js",
+  "files": [
+    "lib"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --reporter=spec test/*-test.js"
   },
-  "keywords": [],
+  "keywords": [ "async_hooks", "breakdown", "trace", "server" ],
   "author": "Fedor Indutny <fedor@indutny.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "mocha": "^8.0.1"
+  }
 }
