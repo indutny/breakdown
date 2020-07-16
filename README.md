@@ -49,6 +49,15 @@ So far the only supported events are:
 * HTTP Client requests
 * DNS lookups
 
+## How does this work?
+
+This work through use of [`async_hooks`][0] APIs and some unfortunate use of
+Node.js (semi-) internal code.
+
+## Which Node.js versions are supported?
+
+The module was tested on Node.js versions starting from v10 and up to v14.
+
 #### LICENSE
 
 This software is licensed under the MIT License.
@@ -73,3 +82,5 @@ NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+[0]: https://nodejs.org/api/async_hooks.html
