@@ -23,6 +23,8 @@ const b = new Breakdown();
 b.start('/path/to/log');
 
 http.createServer((req, res) => {
+  b.track(req, res);
+
   // ....
 }).listen(8000);
 ```

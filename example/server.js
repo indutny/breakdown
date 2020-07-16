@@ -6,7 +6,7 @@ const Breakdown = require('../');
 
 const b = new Breakdown();
 
-b.start('log.json');
+b.start('/dev/stderr');
 
 process.on('SIGINT', () => {
   b.stop();
@@ -31,6 +31,8 @@ const get = (path, callback) => {
 };
 
 http.createServer((req, res) => {
+  b.track(req, res);
+
   get('/', (remote) => {
     remote.resume();
     remote.on('end', () => {
