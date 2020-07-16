@@ -1,6 +1,6 @@
 # breakdown
 [![Build Status](https://secure.travis-ci.org/@indutny/breakdown.svg)](http://travis-ci.org/@indutny/breakdown)
-[![NPM version](https://badge.fury.io/js/@indutny/breakdown.svg)](https://badge.fury.io/js/@indutny/breakdown)
+[![npm version](https://badge.fury.io/js/%40indutny%2Fbreakdown.svg)](https://badge.fury.io/js/%40indutny%2Fbreakdown)
 
 Trace outgoing http requests for an http server and track the time spent
 doing CPU intensive workload during each request.
