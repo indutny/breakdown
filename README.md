@@ -36,27 +36,37 @@ http.createServer((req, res) => {
 
 Events are logged into a newline separated JSON objects:
 ```json
-{"event":"start","id":1,"type":"HTTP_SERVER_REQUEST","path":[],"timestamp":1594860311.81,"meta":{"method":"GET","headers":{"host":"127.0.0.1:8000","user-agent":"curl/7.54.0","accept":"*/*"},"url":"/"}}
-{"event":"start","id":6,"type":"DNS_LOOKUP","path":[4,1],"timestamp":1594860311.822,"meta":{"family":"any","hostname":"example.com"}}
-{"event":"start","id":9,"type":"HTTP_CLIENT_REQUEST","path":[7,1],"timestamp":1594860311.824,"meta":{"method":"GET","path":"/","headers":{"host":"example.com"}}}
-{"event":"end","id":6,"type":"DNS_LOOKUP","spin":0.000507157,"selfSpin":0.000507157,"timestamp":1594860311.848,"duration":0.026}
-{"event":"start","id":22,"type":"HTTP_CLIENT_REQUEST","path":[21,20,4,1],"timestamp":1594860311.869,"meta":{"method":"GET","path":"/","headers":{"host":"example.com"}}}
-{"event":"end","id":9,"type":"HTTP_CLIENT_REQUEST","spin":0.0018778460000000003,"selfSpin":0.000810223,"timestamp":1594860311.869,"duration":0.045}
-{"event":"end","id":22,"type":"HTTP_CLIENT_REQUEST","spin":0.019360079,"selfSpin":0.010411778,"timestamp":1594860311.9,"duration":0.031}
-{"event":"end","id":1,"type":"HTTP_SERVER_REQUEST","spin":0.05297683800000001,"selfSpin":0.015354112000000001,"timestamp":1594860311.9,"duration":0.09}
+{"type":"start","id":1,"timestamp":1594913705.976,"payload":{"type":"HTTP_SERVER_REQUEST","path":[],"meta":{"method":"GET","headers":{"host":"127.0.0.1:8000","user-agent":"curl/7.54.0","accept":"*/*"},"url":"/a"}}}
+{"type":"start","id":6,"timestamp":1594913705.987,"payload":{"type":"DNS_LOOKUP","path":[4,1],"meta":{"family":"any","hostname":"example.com"}}}
+{"type":"start","id":9,"timestamp":1594913705.989,"payload":{"type":"HTTP_CLIENT_REQUEST","path":[7,1],"meta":{"method":"GET","path":"/","headers":{"host":"example.com"}}}}
+{"type":"log","id":6,"timestamp":1594913706,"payload":{"error":false,"address":"93.184.216.34"}}
+{"type":"end","id":6,"timestamp":1594913706.001,"payload":{"spin":0.000756984,"selfSpin":0.000756984}}
+{"type":"log","id":9,"timestamp":1594913706.01,"payload":{"remoteAddress":"93.184.216.34"}}
+{"type":"start","id":25,"timestamp":1594913706.025,"payload":{"type":"HTTP_CLIENT_REQUEST","path":[24,23,4,1],"meta":{"method":"GET","path":"/","headers":{"host":"example.com"}}}}
+{"type":"log","id":25,"timestamp":1594913706.025,"payload":{"remoteAddress":"93.184.216.34"}}
+{"type":"end","id":9,"timestamp":1594913706.025,"payload":{"spin":0.001413863,"selfSpin":0.000597313}}
+{"type":"end","id":25,"timestamp":1594913706.052,"payload":{"spin":0.013044241000000002,"selfSpin":0.010261513}}
+{"type":"end","id":1,"timestamp":1594913706.053,"payload":{"spin":0.044147079,"selfSpin":0.013174767}}
 ```
 
 Field description:
 
-* `event` - either `start` or `end`
+* `type` - either `start`, `log`, or `end`
 * `id` - unique event id
-* `type` - event type
+* `timestamp` - time of the event in seconds (unix time)
+* `payload` - a payload object dependent on the `type` field.
+
+`start` payload:
+* `type` - type of the event
 * `path` - inverse list of parent event ids. Note that some event ids in this
   list are internal and do not correspond to reported events (This may change
   in the future)
-* `timestamp` - time of the event in seconds (unix time)
-* `meta` - various fields pertaining to particular type of event
-* `duration` - difference between `end.timestamp` and `start.timestamp`
+* `meta` - various fields pertaining to particular type of event.
+
+`log` payload:
+- anything specific to particular event type.
+
+`end` payload:
 * `spin` - total CPU time in seconds spent during this event and its children
 * `selfSpin` - total CPU time in seconds spent during this event.
 
