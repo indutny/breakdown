@@ -55,7 +55,7 @@ Field description:
 * `spin` - total CPU time in seconds spent during this event and its children
 * `selfSpin` - total CPU time in seconds spent during this event.
 
-## Supported Asynchronous Evenst
+## Supported Asynchronous Events
 
 So far the only supported events are:
 
