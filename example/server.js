@@ -13,32 +13,8 @@ process.on('SIGINT', () => {
   process.exit();
 });
 
-const agent = new http.Agent({
-  keepAlive: true,
-  maxSockets: 1,
-  maxFreeSockets: 1,
-  timeout: 60 * 1000,
-});
-
-const get = (path, callback) => {
-  http.request({
-    agent,
-    host: 'example.com',
-
-    method: 'GET',
-    path,
-  }, callback).end();
-};
-
 http.createServer((req, res) => {
-  b.track(req, res);
-
-  get('/', (remote) => {
-    remote.resume();
-    remote.on('end', () => {
-      get('/', (remote) => {
-        remote.pipe(res);
-      });
-    });
+  http.get('http://example.com/', (remote) => {
+    remote.pipe(res);
   });
 }).listen(8000);
