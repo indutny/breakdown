@@ -18,6 +18,7 @@
   "author": "Fedor Indutny <fedor@indutny.com>",
   "license": "MIT",
   "devDependencies": {
+    "markdown-table": "^2.0.0",
     "mocha": "^8.0.1"
   }
 }

@@ -1,7 +1,8 @@
 'use strict';
 
 const fs = require('fs');
-const util = require('util');
+const markdownTable = require('markdown-table');
+
 const { computeStats } = require('./stats');
 
 const log = fs.readFileSync(process.argv[2]).toString().split(/\n/g)
@@ -121,26 +122,60 @@ for (const entry of entriesById.values()) {
   value.last = Math.max(start.ts, value.last);
 }
 
-for (const [ key, value ] of endpoints) {
-  const remote = value.remote;
-  for (const [ remoteKey, remoteValue ] of remote) {
-    remote.set(remoteKey, {
-      count: remoteValue.count,
-      rps: remoteValue.count / (value.last - value.first),
-      latency: computeStats(remoteValue.latency),
-    });
+function printStats(list) {
+  let columns = [ '' ];
+  for (const [ _, row ] of list) {
+    for (const [ columnName ] of row) {
+      if (columns.includes(columnName)) {
+        continue;
+      }
+      columns.push(columnName);
+    }
   }
 
-  endpoints.set(key, {
-    count: value.spin.length,
-    rps: value.spin.length / (value.last - value.first),
-    spin: computeStats(value.spin),
-    latency: computeStats(value.latency),
-    remoteLatency: computeStats(value.remoteLatency),
-    remote,
-  });
+  const table = [
+    columns,
+  ];
+  for (const [ rowName, row ] of list) {
+    table.push([ rowName ].concat(row.map(([ , value ]) => {
+      return (value * 1000).toFixed(1) + 'ms';
+    })));
+  }
+
+  console.log(markdownTable(table));
 }
-console.log(util.inspect(endpoints, {
-  depth: 300,
-  colors: true,
-}));
+
+console.log('# Breakdown');
+console.log('');
+
+for (const [ key, value ] of endpoints) {
+  const totalTime = value.last - value.first;
+
+  console.log(`## ${key}`);
+  console.log('');
+
+  console.log(`Request count: ${value.spin.length}`);
+  console.log(`RPS: ${value.spin.length / totalTime}`);
+  console.log('');
+
+  printStats([
+    [ 'spin', computeStats(value.spin) ],
+    [ 'latency', computeStats(value.latency) ],
+    [ 'remoteLatency', computeStats(value.remoteLatency) ],
+  ]);
+  console.log('');
+
+  for (const [ remoteKey, remoteValue ] of value.remote) {
+    console.log(`### ${remoteKey}`);
+    console.log('');
+
+    console.log(`Request count: ${remoteValue.count}`);
+    console.log(`RPS: ${remoteValue.count / totalTime}`);
+    console.log('');
+
+    printStats([
+      [ 'latency', computeStats(remoteValue.latency) ],
+    ]);
+    console.log('');
+  }
+}

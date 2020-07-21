@@ -19,12 +19,12 @@ exports.computeStats = (list) => {
   stddev -= (mean ** 2);
   stddev = Math.sqrt(stddev);
 
-  return {
-    mean,
-    stddev,
-    median: percentile(0.5),
-    p90: percentile(0.9),
-    p95: percentile(0.95),
-    p99: percentile(0.99),
-  };
+  return [
+    [ 'mean', mean ],
+    [ 'stddev', stddev ],
+    [ 'median', percentile(0.5) ],
+    [ 'p90', percentile(0.9) ],
+    [ 'p95', percentile(0.95) ],
+    [ 'p99', percentile(0.99) ],
+  ];
 };
