@@ -83,6 +83,10 @@ for (const entry of entriesById.values()) {
       remoteLatency: [],
       remote: new Map(),
       timestamps: [],
+      dns: {
+        latency: [],
+        queries: [],
+      },
     };
     endpoints.set(endpoint, value);
   }
@@ -113,10 +117,22 @@ for (const entry of entriesById.values()) {
     remoteValue.timestamps.push(child.start.ts);
   }
 
+  let dnsLatency = 0;
+  let dnsQueries = 0;
+  for (const child of entry.children) {
+    if (child.start.payload.type !== 'DNS_LOOKUP') {
+      continue;
+    }
+    dnsLatency += child.end.ts - child.start.ts;
+    dnsQueries++;
+  }
+
   value.spin.push(spin);
   value.latency.push(latency);
   value.remoteLatency.push(remoteLatency);
   value.timestamps.push(start.ts);
+  value.dns.latency.push(dnsLatency);
+  value.dns.queries.push(dnsQueries);
 }
 
 function printStats(list, format) {
@@ -133,9 +149,9 @@ function printStats(list, format) {
   const table = [
     columns,
   ];
-  for (const [ rowName, row ] of list) {
+  for (const [ rowName, row, customFormat ] of list) {
     table.push([ rowName ].concat(row.map(([ , value ]) => {
-      return format(value);
+      return (customFormat || format)(value);
     })));
   }
 
@@ -161,15 +177,29 @@ for (const [ key, value ] of endpoints) {
 
   console.log(`Request count: ${value.timestamps.length}`);
   console.log('');
+
   printStats([
     [ 'Requests per Second', computeRPSStats(value.timestamps) ],
   ], formatRPS);
   console.log('');
 
   printStats([
-    [ 'spin', computeStats(value.spin) ],
-    [ 'latency', computeStats(value.latency) ],
-    [ 'remoteLatency', computeStats(value.remoteLatency) ],
+    [ 'Spin', computeStats(value.spin) ],
+    [ 'Latency', computeStats(value.latency) ],
+    [ 'Remote Latency', computeStats(value.remoteLatency) ],
+  ], formatMS);
+  console.log('');
+
+  console.log('### DNS');
+  console.log('');
+
+  printStats([
+    [ 'Total Queries per Request', computeStats(value.dns.queries, 'dns') ],
+  ], formatRPS);
+  console.log('');
+
+  printStats([
+    [ 'Total Latency per Request', computeStats(value.dns.latency) ],
   ], formatMS);
   console.log('');
 
