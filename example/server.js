@@ -6,7 +6,7 @@ const Breakdown = require('../');
 
 const b = new Breakdown();
 
-b.start('/dev/stderr');
+b.start('sample.log');
 
 process.on('SIGINT', () => {
   b.stop();
