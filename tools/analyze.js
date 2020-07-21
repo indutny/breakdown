@@ -106,11 +106,11 @@ for (const entry of entriesById.values()) {
     if (value.remote.has(remoteEndpoint)) {
       remoteValue = value.remote.get(remoteEndpoint);
     } else {
-      remoteValue = { latency: [], count: 0 };
+      remoteValue = { latency: [], timestamps: [] };
       value.remote.set(remoteEndpoint, remoteValue);
     }
     remoteValue.latency.push(remoteLatency);
-    remoteValue.count++;
+    remoteValue.timestamps.push(child.start.ts);
   }
 
   value.spin.push(spin);
@@ -180,10 +180,10 @@ for (const [ key, value ] of endpoints) {
     console.log(`#### ${remoteKey}`);
     console.log('');
 
-    console.log(`Request count: ${remoteValue.count}`);
+    console.log(`Request count: ${remoteValue.timestamps.length}`);
     console.log('');
     printStats([
-      [ 'Requests per Second', computeRPSStats(value.timestamps) ],
+      [ 'Requests per Second', computeRPSStats(remoteValue.timestamps) ],
     ], formatRPS);
     console.log('');
 
