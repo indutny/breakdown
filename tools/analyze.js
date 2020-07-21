@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const util = require('util');
 const { computeStats } = require('./stats');
 
 const log = fs.readFileSync(process.argv[2]).toString().split(/\n/g)
@@ -66,47 +67,80 @@ for (const entry of entriesById.values()) {
   const end = entry.end;
 
   const host = (headers.host || '').toLowerCase();
-  const uri = `http://${host}${url}`.replace(/\?.*/, '');
+  const endpoint = `${method} http://${host}${url}`.replace(/\?.*/, '');
 
   const latency = end.ts - start.ts;
   const spin = end.payload.spin;
 
-  let remote = 0;
-  for (const child of entry.children) {
-    if (child.start.payload.type !== 'HTTP_CLIENT_REQUEST') {
-      continue;
-    }
-
-    remote += child.end.ts - child.start.ts;
-  }
-
   let value;
-  if (endpoints.has(uri)) {
-    value = endpoints.get(uri);
+  if (endpoints.has(endpoint)) {
+    value = endpoints.get(endpoint);
   } else {
     value = {
       spin: [],
       latency: [],
-      remote: [],
+      remoteLatency: [],
+      remote: new Map(),
       first: Infinity,
       last: -Infinity,
       rps: 0,
     };
-    endpoints.set(uri, value);
+    endpoints.set(endpoint, value);
   }
+
+  let remoteLatency = 0;
+  for (const child of entry.children) {
+    if (child.start.payload.type !== 'HTTP_CLIENT_REQUEST') {
+      continue;
+    }
+    const {
+      method: remoteMethod, path: remotePath, headers,
+    } = child.start.payload.meta;
+    const childLatency = child.end.ts - child.start.ts;
+
+    const remoteEndpoint =
+      `${remoteMethod} ${headers.host}${remotePath.replace(/\?.*/, '')}`;
+
+    remoteLatency += childLatency;
+
+    let remoteValue;
+    if (value.remote.has(remoteEndpoint)) {
+      remoteValue = value.remote.get(remoteEndpoint);
+    } else {
+      remoteValue = { latency: [], count: 0 };
+      value.remote.set(remoteEndpoint, remoteValue);
+    }
+    remoteValue.latency.push(remoteLatency);
+    remoteValue.count++;
+  }
+
   value.spin.push(spin);
   value.latency.push(latency);
-  value.remote.push(remote);
+  value.remoteLatency.push(remoteLatency);
   value.first = Math.min(start.ts, value.first);
   value.last = Math.max(start.ts, value.last);
 }
 
 for (const [ key, value ] of endpoints) {
+  const remote = value.remote;
+  for (const [ remoteKey, remoteValue ] of remote) {
+    remote.set(remoteKey, {
+      count: remoteValue.count,
+      rps: remoteValue.count / (value.last - value.first),
+      latency: computeStats(remoteValue.latency),
+    });
+  }
+
   endpoints.set(key, {
+    count: value.spin.length,
     rps: value.spin.length / (value.last - value.first),
     spin: computeStats(value.spin),
     latency: computeStats(value.latency),
-    remote: computeStats(value.remote),
+    remoteLatency: computeStats(value.remoteLatency),
+    remote,
   });
 }
-console.log(endpoints);
+console.log(util.inspect(endpoints, {
+  depth: 300,
+  colors: true,
+}));
