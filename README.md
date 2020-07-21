@@ -34,6 +34,17 @@ http.createServer((req, res) => {
 }).listen(8000);
 ```
 
+## Analysis
+
+Resulting log can be formatted into a (arguably) pretty [markdown file][sample]
+using (inarguably) ugly procedure (to be improved in the future):
+```sh
+git clone git://github.com/indutny/breakdown
+cd breakdown
+npm i
+node tools/analyze.js /path/to/log > pretty.md
+```
+
 ## Output Format
 
 Events are logged into a newline separated JSON objects:
@@ -110,3 +121,4 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 [0]: https://nodejs.org/api/async_hooks.html
+[sample]: https://github.com/indutny/breakdown/blob/master/sample.md
