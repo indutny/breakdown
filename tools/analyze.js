@@ -3,7 +3,7 @@
 const fs = require('fs');
 const markdownTable = require('markdown-table');
 
-const { computeStats } = require('./stats');
+const { computeStats, computeRPSStats } = require('./stats');
 
 const log = fs.readFileSync(process.argv[2]).toString().split(/\n/g)
   .map((line) => line.trim())
@@ -82,9 +82,7 @@ for (const entry of entriesById.values()) {
       latency: [],
       remoteLatency: [],
       remote: new Map(),
-      first: Infinity,
-      last: -Infinity,
-      rps: 0,
+      timestamps: [],
     };
     endpoints.set(endpoint, value);
   }
@@ -118,11 +116,10 @@ for (const entry of entriesById.values()) {
   value.spin.push(spin);
   value.latency.push(latency);
   value.remoteLatency.push(remoteLatency);
-  value.first = Math.min(start.ts, value.first);
-  value.last = Math.max(start.ts, value.last);
+  value.timestamps.push(start.ts);
 }
 
-function printStats(list) {
+function printStats(list, format) {
   let columns = [ '' ];
   for (const [ _, row ] of list) {
     for (const [ columnName ] of row) {
@@ -138,7 +135,7 @@ function printStats(list) {
   ];
   for (const [ rowName, row ] of list) {
     table.push([ rowName ].concat(row.map(([ , value ]) => {
-      return (value * 1000).toFixed(1) + 'ms';
+      return format(value);
     })));
   }
 
@@ -148,34 +145,51 @@ function printStats(list) {
 console.log('# Breakdown');
 console.log('');
 
+function formatMS(value) {
+  return (value * 1000).toFixed(1) + 'ms';
+}
+
+function formatRPS(value) {
+  return value.toFixed(2);
+}
+
 for (const [ key, value ] of endpoints) {
   const totalTime = value.last - value.first;
 
   console.log(`## ${key}`);
   console.log('');
 
-  console.log(`Request count: ${value.spin.length}`);
-  console.log(`RPS: ${value.spin.length / totalTime}`);
+  console.log(`Request count: ${value.timestamps.length}`);
+  console.log('');
+  printStats([
+    [ 'Requests per Second', computeRPSStats(value.timestamps) ],
+  ], formatRPS);
   console.log('');
 
   printStats([
     [ 'spin', computeStats(value.spin) ],
     [ 'latency', computeStats(value.latency) ],
     [ 'remoteLatency', computeStats(value.remoteLatency) ],
-  ]);
+  ], formatMS);
+  console.log('');
+
+  console.log('### Remote Endpoints');
   console.log('');
 
   for (const [ remoteKey, remoteValue ] of value.remote) {
-    console.log(`### ${remoteKey}`);
+    console.log(`#### ${remoteKey}`);
     console.log('');
 
     console.log(`Request count: ${remoteValue.count}`);
-    console.log(`RPS: ${remoteValue.count / totalTime}`);
+    console.log('');
+    printStats([
+      [ 'Requests per Second', computeRPSStats(value.timestamps) ],
+    ], formatRPS);
     console.log('');
 
     printStats([
       [ 'latency', computeStats(remoteValue.latency) ],
-    ]);
+    ], formatMS);
     console.log('');
   }
 }
