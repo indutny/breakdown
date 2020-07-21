@@ -2,8 +2,6 @@
 [![Build Status](https://secure.travis-ci.org/indutny/breakdown.svg)](http://travis-ci.org/indutny/breakdown)
 [![npm version](https://badge.fury.io/js/%40indutny%2Fbreakdown.svg)](https://badge.fury.io/js/%40indutny%2Fbreakdown)
 
-**WORK IN PROGRESS**
-
 Trace outgoing http requests for an http server and track the time spent
 doing CPU intensive workload during each such request and more.
 
