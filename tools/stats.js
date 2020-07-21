@@ -1,10 +1,10 @@
 'use strict';
 
 function computeStats(list, mode = 'latency') {
-  list = list.slice().sort();
+  list = list.slice().sort((a, b) => a - b);
 
   const percentile = (cutoff) => {
-    return list[Math.floor(list.length * cutoff)];
+    return list[Math.min(Math.round(list.length * cutoff), list.length - 1)];
   };
 
   let mean = 0;
@@ -36,7 +36,7 @@ function computeStats(list, mode = 'latency') {
 }
 exports.computeStats = computeStats;
 
-function computeRPSStats(timestamps, window = 5) {
+function computeRPSStats(timestamps, window = 1) {
   timestamps = timestamps.slice().sort();
 
   const result = [];
@@ -61,6 +61,6 @@ function computeRPSStats(timestamps, window = 5) {
     result.push(count / window);
   }
 
-  return computeStats(result, 'low');
+  return computeStats(result, 'rps');
 }
 exports.computeRPSStats = computeRPSStats;
