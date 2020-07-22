@@ -7,7 +7,10 @@
     "lib"
   ],
   "scripts": {
-    "test": "mocha --reporter=spec test/*-test.js"
+    "lint": "eslint lib test",
+    "lint:fix": "npm run lint -- --fix",
+    "mocha": "mocha --reporter=spec test/*-test.js",
+    "test": "npm run mocha && npm run lint"
   },
   "keywords": [
     "async_hooks",
@@ -18,6 +21,7 @@
   "author": "Fedor Indutny <fedor@indutny.com>",
   "license": "MIT",
   "devDependencies": {
+    "eslint": "^7.5.0",
     "markdown-table": "^2.0.0",
     "mocha": "^8.0.1"
   }

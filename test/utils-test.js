@@ -1,3 +1,4 @@
+/* eslint-env node, mocha */
 'use strict';
 
 const assert = require('assert');
@@ -47,7 +48,7 @@ describe('utils', () => {
         },
         set(value) {
           setterValue = value;
-        }
+        },
       });
 
       let emitted;
