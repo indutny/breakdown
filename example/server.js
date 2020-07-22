@@ -16,8 +16,12 @@ process.on('SIGINT', () => {
 
 http.createServer((req, res) => {
   middleware(req, res, () => {
-    http.get('http://example.com/', (remote) => {
-      remote.pipe(res);
-    });
+    const retry = () => {
+      http.get('http://example.com/', (remote) => {
+        remote.pipe(res);
+      }).on('error', retry);
+    };
+
+    retry();
   });
 }).listen(8000);
