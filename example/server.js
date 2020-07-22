@@ -17,7 +17,7 @@ process.on('SIGINT', () => {
 http.createServer((req, res) => {
   middleware(req, res, () => {
     const retry = () => {
-      http.get('http://example.com/', (remote) => {
+      http.get('http://microsoft.com/', (remote) => {
         remote.pipe(res);
       }).on('error', retry);
     };
