@@ -15,7 +15,6 @@ server endpoints themselves.
 ## Usage
 
 ```js
-const http = require('http');
 const Breakdown = require('@indutny/breakdown');
 
 const b = new Breakdown();
@@ -24,7 +23,7 @@ b.start('/path/to/log');
 
 const middleware = b.middleware();
 
-http.createServer((req, res) => {
+require('http').createServer((req, res) => {
   // NOTE: Necessary only for Node < v12
   middleware(req, res);
 
