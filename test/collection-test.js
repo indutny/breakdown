@@ -15,7 +15,11 @@ describe('Breakdown', () => {
 
     b.start(events);
 
+    const middleware = b.middleware();
+
     const server = http.createServer((req, res) => {
+      middleware(req, res);
+
       if (req.url === '/main') {
         http.get({
           port,
@@ -41,12 +45,13 @@ describe('Breakdown', () => {
         path: '/main',
       }, (res) => {
         res.resume();
-        res.on('end', callback);
+        res.on('end', () => {
+          server.close(callback);
+        });
       });
     };
 
     const check = (callback) => {
-      server.close();
       b.stop();
 
       const parsed = events
