@@ -21,8 +21,8 @@
   "author": "Fedor Indutny <fedor@indutny.com>",
   "license": "MIT",
   "devDependencies": {
-    "eslint": "^7.5.0",
+    "eslint": "^7.7.0",
     "markdown-table": "^2.0.0",
-    "mocha": "^8.0.1"
+    "mocha": "^8.1.1"
   }
 }
