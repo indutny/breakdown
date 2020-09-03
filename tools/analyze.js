@@ -124,17 +124,11 @@ for (const entry of entriesById.values()) {
       if (value.remote.has(remoteEndpoint)) {
         remoteValue = value.remote.get(remoteEndpoint);
       } else {
-        remoteValue = { latency: [], timestamps: [], detached: false };
+        remoteValue = { latency: [], timestamps: [] };
         value.remote.set(remoteEndpoint, remoteValue);
       }
       remoteValue.latency.push(remoteLatency);
       remoteValue.timestamps.push(child.start.ts);
-
-      // This may miss few endpoints, but should at least catch slow detached
-      // requests.
-      if (!isAborted && child.end.ts > end.ts) {
-        remoteValue.detached = true;
-      }
     }
   }
   forEachSubRequest(entry.children);
@@ -240,11 +234,6 @@ for (const [ key, value ] of endpoints) {
   for (const [ remoteKey, remoteValue ] of value.remote) {
     console.log(`#### ${remoteKey}`);
     console.log('');
-
-    if (remoteValue.detached) {
-      console.log(`** (detached) **`);
-      console.log('');
-    }
 
     console.log(`Request count: ${remoteValue.timestamps.length}`);
     console.log('');
