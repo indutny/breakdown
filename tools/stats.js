@@ -64,3 +64,39 @@ function computeRPSStats(timestamps, window = 1) {
   return computeStats(result, 'rps');
 }
 exports.computeRPSStats = computeRPSStats;
+
+function computeOverlap(intervals) {
+  intervals = intervals.slice().sort((a, b) => a.start - b.start);
+
+  let overlap = 0;
+
+  let start = null;
+  let end = null;
+  for (let i = 0; i < intervals.length; i++) {
+    const current = intervals[i];
+
+    if (start === null) {
+      start = current.start;
+      end = current.end;
+      continue;
+    }
+
+    // Combine overlapping intervals
+    if (current.start <= end) {
+      end = Math.max(end, current.end);
+      continue;
+    }
+
+    overlap += end - start;
+
+    start = current.start;
+    end = current.end;
+  }
+
+  if (start !== null) {
+    overlap += end - start;
+  }
+
+  return overlap;
+}
+exports.computeOverlap = computeOverlap;

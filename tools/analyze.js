@@ -4,7 +4,7 @@
 const fs = require('fs');
 const markdownTable = require('markdown-table');
 
-const { computeStats, computeRPSStats } = require('./stats');
+const { computeStats, computeRPSStats, computeOverlap } = require('./stats');
 
 const log = fs.readFileSync(process.argv[2]).toString().split(/\n/g)
   .map((line) => line.trim())
@@ -83,6 +83,7 @@ for (const entry of entriesById.values()) {
       spin: [],
       latency: [],
       remoteLatency: [],
+      concurrency: [],
       remote: new Map(),
       timestamps: [],
       dns: {
@@ -98,7 +99,8 @@ for (const entry of entriesById.values()) {
     return log.payload.type === 'aborted';
   });
 
-  let remoteLatency = 0;
+  let remoteLatency = [];
+  let remoteFlatLatency = 0;
   function forEachSubRequest(children) {
     for (const child of children) {
       forEachSubRequest(child.children);
@@ -118,7 +120,8 @@ for (const entry of entriesById.values()) {
       const remoteEndpoint =
         `${remoteMethod} ${headers.host}${remotePath.replace(/\?.*/, '')}`;
 
-      remoteLatency += childLatency;
+      remoteLatency.push({ start: child.start.ts, end: child.end.ts });
+      remoteFlatLatency += childLatency;
 
       let remoteValue;
       if (value.remote.has(remoteEndpoint)) {
@@ -148,9 +151,12 @@ for (const entry of entriesById.values()) {
   }
   forEachSubQuery(entry.children);
 
+  remoteLatency = computeOverlap(remoteLatency);
+
   value.spin.push(spin);
   value.latency.push(latency);
   value.remoteLatency.push(remoteLatency);
+  value.concurrency.push(remoteFlatLatency / (remoteLatency + 1e-23));
   value.timestamps.push(start.ts);
   value.dns.latency.push(dnsLatency);
   value.dns.queries.push(dnsQueries);
@@ -213,6 +219,11 @@ for (const [ key, value ] of endpoints) {
     [ 'Latency', computeStats(value.latency) ],
     [ 'Remote Latency', computeStats(value.remoteLatency) ],
   ], formatMS);
+  console.log('');
+
+  printStats([
+    [ 'Concurrency', computeStats(value.concurrency, 'rps') ],
+  ], formatRPS);
   console.log('');
 
   console.log('### DNS');
