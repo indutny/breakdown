@@ -99,50 +99,60 @@ for (const entry of entriesById.values()) {
   });
 
   let remoteLatency = 0;
-  for (const child of entry.children) {
-    if (child.start.payload.type !== 'HTTP_CLIENT_REQUEST') {
-      continue;
-    }
+  function forEachSubRequest(children) {
+    for (const child of children) {
+      forEachSubRequest(child.children);
 
-    const {
-      method: remoteMethod,
-      path: remotePath,
-      headers,
-    } = child.start.payload.meta;
+      if (child.start.payload.type !== 'HTTP_CLIENT_REQUEST') {
+        continue;
+      }
 
-    const childLatency = child.end.ts - child.start.ts;
+      const {
+        method: remoteMethod,
+        path: remotePath,
+        headers,
+      } = child.start.payload.meta;
 
-    const remoteEndpoint =
-      `${remoteMethod} ${headers.host}${remotePath.replace(/\?.*/, '')}`;
+      const childLatency = child.end.ts - child.start.ts;
 
-    remoteLatency += childLatency;
+      const remoteEndpoint =
+        `${remoteMethod} ${headers.host}${remotePath.replace(/\?.*/, '')}`;
 
-    let remoteValue;
-    if (value.remote.has(remoteEndpoint)) {
-      remoteValue = value.remote.get(remoteEndpoint);
-    } else {
-      remoteValue = { latency: [], timestamps: [], detached: false };
-      value.remote.set(remoteEndpoint, remoteValue);
-    }
-    remoteValue.latency.push(remoteLatency);
-    remoteValue.timestamps.push(child.start.ts);
+      remoteLatency += childLatency;
 
-    // This may miss few endpoints, but should at least catch slow detached
-    // requests.
-    if (!isAborted && child.end.ts > end.ts) {
-      remoteValue.detached = true;
+      let remoteValue;
+      if (value.remote.has(remoteEndpoint)) {
+        remoteValue = value.remote.get(remoteEndpoint);
+      } else {
+        remoteValue = { latency: [], timestamps: [], detached: false };
+        value.remote.set(remoteEndpoint, remoteValue);
+      }
+      remoteValue.latency.push(remoteLatency);
+      remoteValue.timestamps.push(child.start.ts);
+
+      // This may miss few endpoints, but should at least catch slow detached
+      // requests.
+      if (!isAborted && child.end.ts > end.ts) {
+        remoteValue.detached = true;
+      }
     }
   }
+  forEachSubRequest(entry.children);
 
   let dnsLatency = 0;
   let dnsQueries = 0;
-  for (const child of entry.children) {
-    if (child.start.payload.type !== 'DNS_LOOKUP') {
-      continue;
+  function forEachSubQuery(children) {
+    for (const child of children) {
+      forEachSubQuery(child.children);
+
+      if (child.start.payload.type !== 'DNS_LOOKUP') {
+        continue;
+      }
+      dnsLatency += child.end.ts - child.start.ts;
+      dnsQueries++;
     }
-    dnsLatency += child.end.ts - child.start.ts;
-    dnsQueries++;
   }
+  forEachSubQuery(entry.children);
 
   value.spin.push(spin);
   value.latency.push(latency);
