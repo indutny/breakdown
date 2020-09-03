@@ -125,8 +125,6 @@ for (const entry of entriesById.values()) {
     // requests.
     if (child.end.ts > end.ts) {
       remoteValue.detached = true;
-    } else {
-      console.log(child.end.ts, end.ts);
     }
   }
 
