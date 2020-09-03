@@ -169,4 +169,52 @@ describe('Breakdown', () => {
       callback();
     };
   });
+
+  it('should collect logs on keep-alive requests', (callback) => {
+    let port;
+
+    const middleware = b.middleware();
+
+    let waiting = 2;
+
+    let client;
+
+    const server = http.createServer((req, res) => {
+      middleware(req, res);
+
+      res.end();
+      if (--waiting === 0) {
+        client.end();
+        server.close(() => check(callback));
+      }
+    }).listen(0, () => {
+      port = server.address().port;
+
+      shoot();
+    });
+
+    const shoot = () => {
+      client = net.connect(port, () => {
+        client.write(
+          'GET /first HTTP/1.1\r\n\r\n' +
+            'GET /second HTTP/1.1\r\n\r\n');
+      });
+    };
+
+    const check = (callback) => {
+      const parsed = stringifyEvents(events, port);
+
+      assert.deepStrictEqual(parsed, [
+        [ 1, 'start', 'DNS_LOOKUP null localhost' ],
+        [ 1, 'log', { address: '127.0.0.1', error: false } ],
+        [ 1, 'end', null ],
+        [ 2, 'start', 'HTTP_SERVER_REQUEST null GET /first' ],
+        [ 3, 'start', 'HTTP_SERVER_REQUEST null GET /second' ],
+        [ 2, 'end', null ],
+        [ 3, 'end', null ],
+      ]);
+
+      callback();
+    };
+  });
 });

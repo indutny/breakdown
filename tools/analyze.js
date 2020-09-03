@@ -59,6 +59,7 @@ for (const entry of entriesById.values()) {
 // Process requests
 //
 const endpoints = new Map();
+let count = 0;
 for (const entry of entriesById.values()) {
   const start = entry.start;
   if (start.payload.type !== 'HTTP_SERVER_REQUEST') {
@@ -88,9 +89,14 @@ for (const entry of entriesById.values()) {
         latency: [],
         queries: [],
       },
+      aborted: 0,
     };
     endpoints.set(endpoint, value);
   }
+
+  const isAborted = entry.log.some((log) => {
+    return log.payload.type === 'aborted';
+  });
 
   let remoteLatency = 0;
   for (const child of entry.children) {
@@ -123,7 +129,7 @@ for (const entry of entriesById.values()) {
 
     // This may miss few endpoints, but should at least catch slow detached
     // requests.
-    if (child.end.ts > end.ts) {
+    if (!isAborted && child.end.ts > end.ts) {
       remoteValue.detached = true;
     }
   }
@@ -144,6 +150,7 @@ for (const entry of entriesById.values()) {
   value.timestamps.push(start.ts);
   value.dns.latency.push(dnsLatency);
   value.dns.queries.push(dnsQueries);
+  value.aborted += isAborted ? 1 : 0;
 }
 
 function printStats(list, format) {
@@ -187,6 +194,9 @@ for (const [ key, value ] of endpoints) {
   console.log('');
 
   console.log(`Request count: ${value.timestamps.length}`);
+  if (value.aborted) {
+    console.log(`Aborted: ${value.aborted}`);
+  }
   console.log('');
 
   printStats([
