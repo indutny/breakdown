@@ -70,32 +70,25 @@ function sanitize(value) {
 describe('Breakdown', () => {
   let b;
   let events;
+  let server;
+  let port;
 
-  beforeEach(() => {
+  beforeEach((callback) => {
     b = new Breakdown({
       sanitize,
     });
     events = [];
 
     b.start(events);
-  });
-
-  afterEach(() => {
-    b.stop();
-
-    b = null;
-    events = null;
-  });
-
-  it('should collect data from HTTP server', (callback) => {
-    let port;
 
     const middleware = b.middleware();
 
-    const server = http.createServer((req, res) => {
+    let waiting = 2;
+
+    server = http.createServer((req, res) => {
       middleware(req, res);
 
-      if (req.url === '/main') {
+      if (req.url === '/recursive') {
         http.get({
           port,
 
@@ -103,39 +96,62 @@ describe('Breakdown', () => {
         }, (clientRes) => {
           clientRes.pipe(res);
         });
+      } else if (req.url === '/abort') {
+        req.resume();
+        res.flushHeaders();
+
+        req.on('close', () => {
+          server.emit('abort:close');
+        });
+      } else if (req.url.startsWith('/two')) {
+        res.end();
+        if (--waiting === 0) {
+          server.emit('two:finish');
+        }
       } else {
         res.end('okay');
       }
     }).listen(0, () => {
       port = server.address().port;
 
-      shoot(() => {
-        check(callback);
-      });
+      callback();
+    });
+  });
+
+  afterEach((callback) => {
+    b.stop();
+
+    server.close(() => {
+      setImmediate(callback);
     });
 
-    const shoot = (callback) => {
-      http.get({
-        port,
-        path: '/main',
-      }, (res) => {
-        res.resume();
-        res.on('close', () => {
-          server.close(callback);
-        });
+    b = null;
+    events = null;
+    server = null;
+    port = 0;
+  });
+
+  it('should collect data from HTTP server', (callback) => {
+    http.get({
+      port,
+      path: '/recursive',
+    }, (res) => {
+      res.resume();
+      res.on('close', () => {
+        server.close(() => check(callback));
       });
-    };
+    });
 
     const check = (callback) => {
       const parsed = stringifyEvents(events, port);
 
       assert.deepStrictEqual(parsed, [
         [ 1, 'start', 'DNS_LOOKUP null localhost' ],
-        [ 2, 'start', 'HTTP_CLIENT_REQUEST null GET /main' ],
+        [ 2, 'start', 'HTTP_CLIENT_REQUEST null GET /recursive' ],
         [ 1, 'log', { error: false, address: '127.0.0.1' } ],
         [ 1, 'end', null ],
         [ 2, 'log', { remoteAddress: '127.0.0.1', remotePort: 0 } ],
-        [ 3, 'start', 'HTTP_SERVER_REQUEST null GET /main' ],
+        [ 3, 'start', 'HTTP_SERVER_REQUEST null GET /recursive' ],
         [ 4, 'start', 'DNS_LOOKUP 3 localhost' ],
         [ 5, 'start', 'HTTP_CLIENT_REQUEST 3 GET /sub' ],
         [ 4, 'log', { error: false, address: '127.0.0.1' } ],
@@ -153,34 +169,17 @@ describe('Breakdown', () => {
   });
 
   it('should collect logs on aborted server request', (callback) => {
-    let port;
-
-    const middleware = b.middleware();
-
-    const server = http.createServer((req, res) => {
-      middleware(req, res);
-
-      req.resume();
-      res.flushHeaders();
-
-      req.on('close', () => {
-        setImmediate(() => {
-          server.close(() => check(callback));
-        });
-      });
-    }).listen(0, () => {
-      port = server.address().port;
-
-      shoot();
+    const client = net.connect(port, () => {
+      client.write(
+        'POST /abort HTTP/1.1\r\nContent-Length: 42\r\n\r\n',
+        () => client.destroy());
     });
 
-    const shoot = () => {
-      const socket = net.connect(port, () => {
-        socket.write(
-          'POST /main HTTP/1.1\r\nContent-Length: 42\r\n\r\n',
-          () => socket.destroy());
+    server.once('abort:close', () => {
+      setImmediate(() => {
+        server.close(() => check(callback));
       });
-    };
+    });
 
     const check = (callback) => {
       const parsed = stringifyEvents(events, port);
@@ -189,7 +188,7 @@ describe('Breakdown', () => {
         [ 1, 'start', 'DNS_LOOKUP null localhost' ],
         [ 1, 'log', { address: '127.0.0.1', error: false } ],
         [ 1, 'end', null ],
-        [ 2, 'start', 'HTTP_SERVER_REQUEST null POST /main' ],
+        [ 2, 'start', 'HTTP_SERVER_REQUEST null POST /abort' ],
         [ 2, 'log', { type: 'aborted' } ],
         [ 2, 'end', null ],
       ]);
@@ -199,35 +198,16 @@ describe('Breakdown', () => {
   });
 
   it('should collect logs on keep-alive requests', (callback) => {
-    let port;
-
-    const middleware = b.middleware();
-
-    let waiting = 2;
-
-    let client;
-
-    const server = http.createServer((req, res) => {
-      middleware(req, res);
-
-      res.end();
-      if (--waiting === 0) {
-        client.end();
-        server.close(() => check(callback));
-      }
-    }).listen(0, () => {
-      port = server.address().port;
-
-      shoot();
+    const client = net.connect(port, () => {
+      client.write(
+        'GET /two?q=first HTTP/1.1\r\n\r\n' +
+          'GET /two?q=second HTTP/1.1\r\n\r\n');
     });
 
-    const shoot = () => {
-      client = net.connect(port, () => {
-        client.write(
-          'GET /first HTTP/1.1\r\n\r\n' +
-            'GET /second HTTP/1.1\r\n\r\n');
-      });
-    };
+    server.once('two:finish', () => {
+      client.end();
+      server.close(() => check(callback));
+    });
 
     const check = (callback) => {
       const parsed = stringifyEvents(events, port);
@@ -236,9 +216,9 @@ describe('Breakdown', () => {
         [ 1, 'start', 'DNS_LOOKUP null localhost' ],
         [ 1, 'log', { address: '127.0.0.1', error: false } ],
         [ 1, 'end', null ],
-        [ 2, 'start', 'HTTP_SERVER_REQUEST null GET /first' ],
+        [ 2, 'start', 'HTTP_SERVER_REQUEST null GET /two?q=first' ],
         [ 2, 'end', null ],
-        [ 3, 'start', 'HTTP_SERVER_REQUEST null GET /second' ],
+        [ 3, 'start', 'HTTP_SERVER_REQUEST null GET /two?q=second' ],
         [ 3, 'end', null ],
       ]);
 
@@ -247,35 +227,16 @@ describe('Breakdown', () => {
   });
 
   it('should sanitize logs', (callback) => {
-    let port;
-
-    const middleware = b.middleware();
-
-    let waiting = 2;
-
-    let client;
-
-    const server = http.createServer((req, res) => {
-      middleware(req, res);
-
-      res.end();
-      if (--waiting === 0) {
-        client.end();
-        server.close(() => check(callback));
-      }
-    }).listen(0, () => {
-      port = server.address().port;
-
-      shoot();
+    const client = net.connect(port, () => {
+      client.write(
+        'GET /two?q=bad HTTP/1.1\r\n\r\n' +
+          'GET /two?q=other HTTP/1.1\r\nBad: hello\r\nGood: okay\r\n\r\n');
     });
 
-    const shoot = () => {
-      client = net.connect(port, () => {
-        client.write(
-          'GET /bad HTTP/1.1\r\n\r\n' +
-            'GET /other HTTP/1.1\r\nBad: hello\r\nGood: okay\r\n\r\n');
-      });
-    };
+    server.once('two:finish', () => {
+      client.end();
+      server.close(() => check(callback));
+    });
 
     const check = (callback) => {
       const parsed = stringifyEvents(events, port, true);
@@ -284,12 +245,12 @@ describe('Breakdown', () => {
         [ 1, 'start', 'DNS_LOOKUP null localhost' ],
         [ 1, 'log', { address: '127.0.0.1', error: false } ],
         [ 1, 'end', null ],
-        [ 2, 'start', 'HTTP_SERVER_REQUEST null GET /good {}' ],
+        [ 2, 'start', 'HTTP_SERVER_REQUEST null GET /two?q=good {}' ],
         [ 2, 'end', null ],
         [
           3,
           'start',
-          'HTTP_SERVER_REQUEST null GET /other ' +
+          'HTTP_SERVER_REQUEST null GET /two?q=other ' +
             '{"bad":"[sanitized]","good":"okay"}',
         ],
         [ 3, 'end', null ],
