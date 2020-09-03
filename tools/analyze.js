@@ -127,7 +127,7 @@ for (const entry of entriesById.values()) {
         remoteValue = { latency: [], timestamps: [] };
         value.remote.set(remoteEndpoint, remoteValue);
       }
-      remoteValue.latency.push(remoteLatency);
+      remoteValue.latency.push(childLatency);
       remoteValue.timestamps.push(child.start.ts);
     }
   }
