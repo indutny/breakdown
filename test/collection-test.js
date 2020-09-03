@@ -45,7 +45,7 @@ describe('Breakdown', () => {
         path: '/main',
       }, (res) => {
         res.resume();
-        res.on('end', () => {
+        res.on('close', () => {
           server.close(callback);
         });
       });
@@ -102,6 +102,7 @@ describe('Breakdown', () => {
         [ 6, 'end', null ],
         [ 5, 'end', null ],
         [ 3, 'end', null ],
+        [ 2, 'end', null ],
       ]);
 
       callback();
