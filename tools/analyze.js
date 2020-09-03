@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 'use strict';
 
 const fs = require('fs');
@@ -96,9 +97,13 @@ for (const entry of entriesById.values()) {
     if (child.start.payload.type !== 'HTTP_CLIENT_REQUEST') {
       continue;
     }
+
     const {
-      method: remoteMethod, path: remotePath, headers,
+      method: remoteMethod,
+      path: remotePath,
+      headers,
     } = child.start.payload.meta;
+
     const childLatency = child.end.ts - child.start.ts;
 
     const remoteEndpoint =
@@ -110,11 +115,19 @@ for (const entry of entriesById.values()) {
     if (value.remote.has(remoteEndpoint)) {
       remoteValue = value.remote.get(remoteEndpoint);
     } else {
-      remoteValue = { latency: [], timestamps: [] };
+      remoteValue = { latency: [], timestamps: [], detached: false };
       value.remote.set(remoteEndpoint, remoteValue);
     }
     remoteValue.latency.push(remoteLatency);
     remoteValue.timestamps.push(child.start.ts);
+
+    // This may miss few endpoints, but should at least catch slow detached
+    // requests.
+    if (child.end.ts > end.ts) {
+      remoteValue.detached = true;
+    } else {
+      console.log(child.end.ts, end.ts);
+    }
   }
 
   let dnsLatency = 0;
@@ -209,6 +222,11 @@ for (const [ key, value ] of endpoints) {
   for (const [ remoteKey, remoteValue ] of value.remote) {
     console.log(`#### ${remoteKey}`);
     console.log('');
+
+    if (remoteValue.detached) {
+      console.log(`** (detached) **`);
+      console.log('');
+    }
 
     console.log(`Request count: ${remoteValue.timestamps.length}`);
     console.log('');

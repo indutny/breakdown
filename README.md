@@ -24,7 +24,6 @@ b.start('/path/to/log');
 const middleware = b.middleware();
 
 require('http').createServer((req, res) => {
-  // NOTE: Necessary only for Node < v12
   middleware(req, res);
 
   // ....
