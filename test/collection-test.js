@@ -209,8 +209,8 @@ describe('Breakdown', () => {
         [ 1, 'log', { address: '127.0.0.1', error: false } ],
         [ 1, 'end', null ],
         [ 2, 'start', 'HTTP_SERVER_REQUEST null GET /first' ],
-        [ 3, 'start', 'HTTP_SERVER_REQUEST null GET /second' ],
         [ 2, 'end', null ],
+        [ 3, 'start', 'HTTP_SERVER_REQUEST null GET /second' ],
         [ 3, 'end', null ],
       ]);
 
