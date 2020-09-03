@@ -7,7 +7,7 @@ const net = require('net');
 
 const Breakdown = require('../');
 
-function stringifyEvents(events, port) {
+function stringifyEvents(events, port, includeHeaders) {
   return events
     .map((raw) => JSON.parse(raw))
     .map(({ id, type, payload }) => {
@@ -23,6 +23,9 @@ function stringifyEvents(events, port) {
           content += ` ${meta.method} ${meta.path}`;
         } else if (payload.type === 'HTTP_SERVER_REQUEST') {
           content += ` ${meta.method} ${meta.url}`;
+          if (includeHeaders) {
+            content += ` ${JSON.stringify(meta.headers)}`;
+          }
         }
       } else if (type === 'log') {
         content = JSON.parse(
@@ -41,12 +44,37 @@ function stringifyEvents(events, port) {
     });
 }
 
+function sanitize(value) {
+  if (typeof value === 'string') {
+    return value.replace(/bad/g, 'good');
+  }
+
+  if (typeof value === 'object') {
+    const copy = { ...value };
+    for (const key of Object.keys(copy)) {
+      assert.strictEqual(typeof copy[key], 'string',
+        'non-shallow sanitize input');
+
+      if (key.includes('bad')) {
+        copy[key] = '[sanitized]';
+      } else {
+        copy[key] = sanitize(copy[key]);
+      }
+    }
+    return copy;
+  }
+
+  throw new Error('Unexpected sanitize input: ' + JSON.stringify(value));
+}
+
 describe('Breakdown', () => {
   let b;
   let events;
 
   beforeEach(() => {
-    b = new Breakdown();
+    b = new Breakdown({
+      sanitize,
+    });
     events = [];
 
     b.start(events);
@@ -211,6 +239,59 @@ describe('Breakdown', () => {
         [ 2, 'start', 'HTTP_SERVER_REQUEST null GET /first' ],
         [ 2, 'end', null ],
         [ 3, 'start', 'HTTP_SERVER_REQUEST null GET /second' ],
+        [ 3, 'end', null ],
+      ]);
+
+      callback();
+    };
+  });
+
+  it('should sanitize logs', (callback) => {
+    let port;
+
+    const middleware = b.middleware();
+
+    let waiting = 2;
+
+    let client;
+
+    const server = http.createServer((req, res) => {
+      middleware(req, res);
+
+      res.end();
+      if (--waiting === 0) {
+        client.end();
+        server.close(() => check(callback));
+      }
+    }).listen(0, () => {
+      port = server.address().port;
+
+      shoot();
+    });
+
+    const shoot = () => {
+      client = net.connect(port, () => {
+        client.write(
+          'GET /bad HTTP/1.1\r\n\r\n' +
+            'GET /other HTTP/1.1\r\nBad: hello\r\nGood: okay\r\n\r\n');
+      });
+    };
+
+    const check = (callback) => {
+      const parsed = stringifyEvents(events, port, true);
+
+      assert.deepStrictEqual(parsed, [
+        [ 1, 'start', 'DNS_LOOKUP null localhost' ],
+        [ 1, 'log', { address: '127.0.0.1', error: false } ],
+        [ 1, 'end', null ],
+        [ 2, 'start', 'HTTP_SERVER_REQUEST null GET /good {}' ],
+        [ 2, 'end', null ],
+        [
+          3,
+          'start',
+          'HTTP_SERVER_REQUEST null GET /other ' +
+            '{"bad":"[sanitized]","good":"okay"}',
+        ],
         [ 3, 'end', null ],
       ]);
 
