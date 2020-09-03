@@ -136,7 +136,7 @@ for (const entry of entriesById.values()) {
   }
   forEachSubRequest(entry.children);
 
-  let dnsLatency = 0;
+  let dnsLatency = [];
   let dnsQueries = 0;
   function forEachSubQuery(children) {
     for (const child of children) {
@@ -145,13 +145,14 @@ for (const entry of entriesById.values()) {
       if (child.start.payload.type !== 'DNS_LOOKUP') {
         continue;
       }
-      dnsLatency += child.end.ts - child.start.ts;
+      dnsLatency.push({ start: child.start.ts, end: child.end.ts });
       dnsQueries++;
     }
   }
   forEachSubQuery(entry.children);
 
   remoteLatency = computeOverlap(remoteLatency);
+  dnsLatency = computeOverlap(dnsLatency);
 
   value.spin.push(spin);
   value.latency.push(latency);
